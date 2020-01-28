@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4CD4AEC5-900D-466B-B34C-5BA58F60946D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>IgnitionDX.SceneGraph</RootNamespace>
+    <AssemblyName>IgnitionDX.SceneGraph</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Debug\IgnitionDX.SceneGraph.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\IgnitionDX.SceneGraph.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="SharpDX, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.4.2.0\lib\net40\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Direct3D11, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.Direct3D11.4.2.0\lib\net40\SharpDX.Direct3D11.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DXGI, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.DXGI.4.2.0\lib\net40\SharpDX.DXGI.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="GeometryFactory.cs" />
+    <Compile Include="MaterialFactory.cs" />
+    <Compile Include="SceneGeometry.cs" />
+    <Compile Include="ColladaLoader.cs" />
+    <Compile Include="SceneMaterial.cs" />
+    <Compile Include="ResourceLoader.cs" />
+    <Compile Include="SceneRenderer.cs" />
+    <Compile Include="Scene\CameraNode.cs" />
+    <Compile Include="Scene\ClipPlaneNode.cs" />
+    <Compile Include="Scene\ICameraNode.cs" />
+    <Compile Include="Scene\OrthoCameraNode.cs" />
+    <Compile Include="Scene\PerspectiveCameraNode.cs" />
+    <Compile Include="Scene\DirectionalLightNode.cs" />
+    <Compile Include="Scene\LightNode.cs" />
+    <Compile Include="Scene\SpotLightNode.cs" />
+    <Compile Include="Scene\ViewFrustum.cs" />
+    <Compile Include="Scene\ShadowMap.cs" />
+    <Compile Include="Traverser\Finder.cs" />
+    <Compile Include="Traverser\Picker.cs" />
+    <Compile Include="Traverser\Preloader.cs" />
+    <Compile Include="Scene\PointLightNode.cs" />
+    <Compile Include="Scene\GroupNode.cs" />
+    <Compile Include="Traverser\ITraverser.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Traverser\RenderQueue.cs" />
+    <Compile Include="Traverser\RenderTraverser.cs" />
+    <Compile Include="Scene\SceneNode.cs" />
+    <Compile Include="Scene\ShapeNode.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\Ambient.ps" />
+    <EmbeddedResource Include="Shaders\Ambient.vs" />
+    <EmbeddedResource Include="Shaders\BoundingBox.ps" />
+    <EmbeddedResource Include="Shaders\BoundingBox.vs" />
+    <EmbeddedResource Include="Shaders\PhongLighting.ps" />
+    <EmbeddedResource Include="Shaders\PhongLighting.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\DiffuseColor.ps" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Collada14\Collada14.csproj">
+      <Project>{168c2aa4-bc86-483b-b172-1827f9c66631}</Project>
+      <Name>Collada14</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IgnitionDX.Graphics\IgnitionDX.Graphics.csproj">
+      <Project>{f27b1ae6-2fe9-4804-8949-0b46730610a4}</Project>
+      <Name>IgnitionDX.Graphics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IgnitionDX.Math\IgnitionDX.Math.csproj">
+      <Project>{d565f479-bcbb-4b19-9693-87868941b1d7}</Project>
+      <Name>IgnitionDX.Math</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\IgnitionDX.Utilities\IgnitionDX.Utilities.csproj">
+      <Project>{f3479d53-87e7-415c-bae3-d150282a81d6}</Project>
+      <Name>IgnitionDX.Utilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

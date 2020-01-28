@@ -1,0 +1,227 @@
+﻿/* MIT License (MIT)
+ *
+ * Copyright (c) 2020 Marc Roßbach
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#define MAX_SHADOW_LEVELS 3
+#define SHADOW_BLEND 0.1f
+
+Texture2D ColorMap;
+SamplerState ColorMapSamplerState;
+
+Texture2D ShadowMap0;
+Texture2D ShadowMap1;
+Texture2D ShadowMap2;
+SamplerComparisonState ShadowMapSamplerState;
+
+cbuffer MaterialParameters
+{
+	float4 MaterialAmbientColor;
+	float4 MaterialDiffuseColor;
+	float4 MaterialSpecularColor;
+	float MaterialShininess;
+	bool MaterialUseColorMap;
+}
+
+cbuffer LightParameters
+{
+    float4 LightDiffuseColor;
+    float4 LightSpecularColor;
+    float LightIntensity;
+    float LightConstantAttenuation;
+    float LightLinearAttenuation;
+    float LightQuadraticAttenuation;
+    float LightSpotExponent;
+    float LightSpotCutOff;
+    float LightSpotCosCutOff;
+    bool LightCastShadow;
+	float LightShadowBias;
+}
+
+cbuffer LightTransformation
+{
+    float4 LightPosition;
+    matrix LightViewProjectionMatrix;
+    float3 LightSpotDirection;
+}
+
+cbuffer LightShadowParameters
+{
+	float4 LightShadowOffsetAndScale[MAX_SHADOW_LEVELS];
+	int LightShadowLevels;
+}
+
+struct PS_INPUT
+{
+    float4 Position : SV_POSITION;
+    float3 TexCoord : TEXCOORD;
+	float3 Normal : NORMAL;
+	float3 EyeVector : EYEVECTOR;
+	float3 LightDir : LIGHTDIR;
+	float Attenuation : ATTENUATION;
+	float4 ShadowCoord : SHADOWCOORD;
+};
+
+float4 phong(float3 lightDir, float3 eyeVec, float3 normal, float4 matSpecColor, float4 matDiffuseColor, float matShininess, 
+             float4 lightDiffuseColor, float4 lightSpecularColor, float lightIntensity, float attenuation)
+{
+	float4 result = float4(0, 0, 0, 0);
+	
+	lightDir = normalize(lightDir);
+	normal = normalize(normal);	
+	float lambertTerm = dot(normal, lightDir);
+	if(lambertTerm > 0.0) 
+	{
+		result += attenuation * lightIntensity * lightDiffuseColor * matDiffuseColor * lambertTerm;
+		eyeVec = normalize(eyeVec);
+		float3 reflectVec = reflect(-lightDir, normal);
+		result += attenuation * lightIntensity * lightSpecularColor * matSpecColor * pow( max(dot(reflectVec, eyeVec), 0.0), matShininess);
+	}
+	
+	return result;
+}
+
+Texture2D getShadowMapTexture(int idx)
+{
+	switch(idx)
+	{
+		case 1:
+			return ShadowMap1;
+		case 2:
+			return ShadowMap2;
+		default:
+			return ShadowMap0;
+	}
+}
+
+float lookupShadowMap(int idx, float4 shadowCoord, int2 offset, float bias)
+{
+	float4 sc = shadowCoord / shadowCoord.w;
+	return getShadowMapTexture(idx).SampleCmp(ShadowMapSamplerState, sc.xy, sc.z - bias, offset).r;
+}
+
+float lookupPCFShadowMap(int idx, float4 shadowCoord, float bias)
+{
+	float result = 0;
+	result += 0.25f * lookupShadowMap(idx, shadowCoord, int2(0, 0), bias);
+	result += 0.25f * lookupShadowMap(idx, shadowCoord, int2(1, 0), bias);
+	result += 0.25f * lookupShadowMap(idx, shadowCoord, int2(0, 1), bias);
+	result += 0.25f * lookupShadowMap(idx, shadowCoord, int2(1, 1), bias);
+	return result;
+}
+
+float4 main( PS_INPUT input ) : SV_TARGET
+{
+	float4 matSpecColor = MaterialSpecularColor;
+	float4 matDiffuseColor = MaterialDiffuseColor;
+
+	if (MaterialUseColorMap)
+	{
+		float4 color = ColorMap.Sample(ColorMapSamplerState, input.TexCoord);
+		matSpecColor *= color;
+		matDiffuseColor *= color;
+	}
+
+	float4 result = float4(0, 0, 0, 1);
+
+	if (LightSpotCutOff == 0.0)
+	{
+		// point light or directional light
+		if (LightCastShadow)
+		{
+			int idx = -1;
+			float lightIntensity = LightIntensity;
+			float shadowIntensity = 0;
+			for (int i = 0; i < min(MAX_SHADOW_LEVELS, LightShadowLevels); i++)
+			{
+				float4 shadowCoord = input.ShadowCoord;
+				shadowCoord.xy += LightShadowOffsetAndScale[i].xy;
+				shadowCoord.xy *= LightShadowOffsetAndScale[i].zw;
+				
+				if (shadowCoord.x >= 0 && shadowCoord.y >= 0 && shadowCoord.x <= 1 && shadowCoord.y <= 1)
+				{
+					float2 bf;
+					bf.x = (shadowCoord.x <= SHADOW_BLEND ? shadowCoord.x : (shadowCoord.x >= 1-SHADOW_BLEND ? 1 - shadowCoord.x : SHADOW_BLEND)) / SHADOW_BLEND;
+					bf.y = (shadowCoord.y <= SHADOW_BLEND ? shadowCoord.y : (shadowCoord.y >= 1-SHADOW_BLEND ? 1 - shadowCoord.y : SHADOW_BLEND)) / SHADOW_BLEND;
+					float shadowBlendFactor = min(bf.x, bf.y);
+
+					shadowIntensity = lookupPCFShadowMap(i, shadowCoord, LightShadowBias);
+					idx = i;
+
+					if (i < min(MAX_SHADOW_LEVELS, LightShadowLevels) - 1)
+					{
+						float4 shadowCoord = input.ShadowCoord;
+						shadowCoord.xy += LightShadowOffsetAndScale[i+1].xy;
+						shadowCoord.xy *= LightShadowOffsetAndScale[i+1].zw;
+						float blendShadowIntensity = 0;
+						if (shadowCoord.x >= 0 && shadowCoord.y >= 0 && shadowCoord.x <= 1 && shadowCoord.y <= 1)
+						{
+							blendShadowIntensity = lookupPCFShadowMap(i+1, shadowCoord, LightShadowBias);
+							lightIntensity *= (shadowIntensity * shadowBlendFactor + blendShadowIntensity * (1-shadowBlendFactor));
+							break;
+						}
+					}
+
+					lightIntensity *= shadowIntensity;
+					break;
+				}
+			}
+
+			if (lightIntensity > 0)
+			{
+				result = phong(input.LightDir, input.EyeVector, input.Normal, matSpecColor, matDiffuseColor, MaterialShininess, LightDiffuseColor, LightSpecularColor, lightIntensity, input.Attenuation);
+			}
+			else
+			{
+				discard;
+			}
+
+			//if (idx == 0)
+			//	result.r = 1;
+			//else if (idx == 1)
+			//	result.g = 1;
+			//else if (idx == 2)
+			//	result.b = 1;
+		}
+		else
+		{
+			result = phong(input.LightDir, input.EyeVector, input.Normal, matSpecColor, matDiffuseColor, MaterialShininess, LightDiffuseColor, LightSpecularColor, LightIntensity, input.Attenuation);
+		}
+	}
+	else 
+	{
+		// spot light
+		float LdotD = dot(-normalize(input.LightDir), normalize(LightSpotDirection));
+		if(LdotD > LightSpotCosCutOff)
+		{
+			result = phong(input.LightDir, input.EyeVector, input.Normal, matSpecColor, matDiffuseColor, MaterialShininess, LightDiffuseColor, LightSpecularColor, LightIntensity, input.Attenuation * pow(LdotD, LightSpotExponent));
+		}
+		else
+		{
+			discard;
+		}
+	}
+
+	if (result.a < 0.1)
+		discard;
+
+	return result;
+}
